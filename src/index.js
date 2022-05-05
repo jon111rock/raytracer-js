@@ -1,4 +1,4 @@
-import { Vector3 } from "three";
+import { Vector3 } from "./modules/vec3";
 import { drawPixelsToCanva, drawColorToArray } from "./modules/draw";
 import { Ray } from "./modules/ray";
 

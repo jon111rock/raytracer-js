@@ -5,7 +5,7 @@ export function drawPixelsToCanva(canvas, pixels, width, height) {
   // Initialize a new ImageData object
   let imageData = new ImageData(pixels, width, height);
   // Draw image data to the canvas
-  ctx.putImageData(imageData, 20, 20);
+  ctx.putImageData(imageData, 0, 0);
 }
 
 export function drawColorToArray(ary, x, y, colorVec, width, height) {

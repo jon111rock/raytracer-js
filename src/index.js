@@ -1,4 +1,4 @@
-import { Vector3, normalize } from "./modules/vec3";
+import { Vector3, normalize, dot } from "./modules/vec3";
 import { drawPixelsToCanva, drawColorToArray } from "./modules/draw";
 import { Ray } from "./modules/ray";
 
@@ -6,7 +6,7 @@ const canvas = document.getElementById("canvas");
 
 // Image
 const aspectRatio = 16 / 9;
-const imageWidth = 400;
+const imageWidth = 800;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
@@ -41,10 +41,22 @@ for (let j = imageWidth - 1; j >= 0; j--) {
 }
 drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
 
+// general function
 function rayColor(r) {
+  if (hitSphere(new Vector3(0, 0, -1), 0.5, r)) return new Vector3(1, 0, 0);
   const unitDirection = normalize(r.direction);
   const t = 0.5 * (unitDirection.y + 1.0);
   return new Vector3(1, 1, 1)
     .multiplyScalar(1 - t)
     .add(new Vector3(0.5, 0.7, 1).multiplyScalar(t));
+}
+
+// ray-sphere intersection test
+function hitSphere(center, radius, r) {
+  const oc = r.origin.sub(center);
+  const a = dot(r.direction, r.direction);
+  const b = 2 * dot(oc, r.direction);
+  const c = dot(oc, oc) - radius * radius;
+  const discriminant = b * b - 4 * a * c;
+  return discriminant > 0;
 }

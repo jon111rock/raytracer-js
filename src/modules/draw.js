@@ -8,17 +8,13 @@ export function drawPixelsToCanva(canvas, pixels, width, height) {
   ctx.putImageData(imageData, 20, 20);
 }
 
-export function drawColorToArray(ary, x, y, width, height) {
-  let r = x / (width - 1);
-  let g = y / (height - 1);
-  let b = 0.25;
-
-  let ir = parseInt(255.99 * r);
-  let ig = parseInt(255.99 * g);
-  let ib = parseInt(255.99 * b);
+export function drawColorToArray(ary, x, y, colorVec, width, height) {
+  let r = parseInt(255.99 * colorVec.x);
+  let g = parseInt(255.99 * colorVec.y);
+  let b = parseInt(255.99 * colorVec.z);
   const index = ((height - 1 - y) * width + x) * 4;
-  ary[index + 0] = ir; // R value
-  ary[index + 1] = ig; // G value
-  ary[index + 2] = ib; // B value
+  ary[index + 0] = r; // R value
+  ary[index + 1] = g; // G value
+  ary[index + 2] = b; // B value
   ary[index + 3] = 255; // A value
 }

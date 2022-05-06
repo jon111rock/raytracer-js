@@ -14,4 +14,10 @@ export class Sphere {
     this.shine = shine;
     this.reflective = reflective;
   }
+  translate(v) {
+    this.center = this.center.add(v);
+  }
+  setCenter(v) {
+    this.center = v;
+  }
 }

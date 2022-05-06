@@ -67,30 +67,45 @@ const scene = new Scene(spheres, lights, tMin, tMax);
 
 // Iterate through every pixel
 let startTime = performance.now();
-for (let j = imageWidth - 1; j >= 0; j--) {
-  for (let i = 0; i < imageWidth; i++) {
-    const u = i / (imageWidth - 1);
-    const v = j / (imageHeight - 1);
-    const r = new Ray(
-      camera.origin,
-      camera.lowerLeftCorner
-        .add(camera.horizontal.multiplyScalar(u))
-        .add(camera.vertical.multiplyScalar(v))
-        .sub(camera.origin)
-    );
-    // const pixelColor = rayColor(r, lights, s);
-    const pixelColor = rayTrace(r, scene, 3);
-    drawColorToArray(pixels, i, j, pixelColor, imageWidth, imageHeight);
-  }
-}
-drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
+draw();
 let endTime = performance.now();
 let sec = (endTime - startTime) / 1000;
-console.log(`execute time: ${sec}s`);
 let displayTime = document.getElementById("exetime");
 displayTime.innerHTML += ` ${sec.toFixed(2)}s`;
 
-// ray-sphere intersection test
+// Animation
+let v = 0.01;
+setInterval(() => {
+  // console.log(sphereMiddle.center.y);
+  if (sphereMiddle.center.y > 0.55) {
+    v = -0.01;
+  } else if (sphereMiddle.center.y < 0.05) {
+    v = 0.01;
+  }
+  sphereMiddle.translate(new Vector3(0, v, 0));
+  draw();
+}, 15);
+
+function draw() {
+  for (let j = imageWidth - 1; j >= 0; j--) {
+    for (let i = 0; i < imageWidth; i++) {
+      const u = i / (imageWidth - 1);
+      const v = j / (imageHeight - 1);
+      const r = new Ray(
+        camera.origin,
+        camera.lowerLeftCorner
+          .add(camera.horizontal.multiplyScalar(u))
+          .add(camera.vertical.multiplyScalar(v))
+          .sub(camera.origin)
+      );
+      // const pixelColor = rayColor(r, lights, s);
+      const pixelColor = rayTrace(r, scene, 3);
+      drawColorToArray(pixels, i, j, pixelColor, imageWidth, imageHeight);
+    }
+  }
+  drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
+}
+
 function sphereRayIntersection(sphere, ray) {
   const oc = ray.origin.sub(sphere.center);
   const a = dot(ray.direction, ray.direction);

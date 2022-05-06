@@ -10,7 +10,7 @@ const canvas = document.getElementById("canvas");
 
 // Image
 const aspectRatio = 16 / 9;
-const imageWidth = 1024;
+const imageWidth = 512;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
@@ -87,8 +87,8 @@ drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
 let endTime = performance.now();
 let sec = (endTime - startTime) / 1000;
 console.log(`execute time: ${sec}s`);
-let a = document.getElementById("exetime");
-a.innerHTML += ` ${sec.toFixed(2)}s`;
+let displayTime = document.getElementById("exetime");
+displayTime.innerHTML += ` ${sec.toFixed(2)}s`;
 
 // ray-sphere intersection test
 function sphereRayIntersection(sphere, ray) {

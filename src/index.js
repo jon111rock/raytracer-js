@@ -7,7 +7,7 @@ const canvas = document.getElementById("canvas");
 
 // Image
 const aspectRatio = 16 / 9;
-const imageWidth = 400;
+const imageWidth = 512;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
@@ -25,8 +25,8 @@ const lowerLeftCorner = origin
   .sub(new Vector3(0, 0, focalLength));
 
 // Light
-const ambientLight = new Light.ambient(0.6);
-const pointLight = new Light.point(0.6, new Vector3(2, 1, 0));
+const ambientLight = new Light.ambient(0.3);
+const pointLight = new Light.point(0.6, new Vector3(1, 1, 0));
 const directionalLight = new Light.directional(0.2, new Vector3(1, 4, 4));
 const lights = [ambientLight, pointLight, directionalLight];
 
@@ -58,8 +58,9 @@ function rayColor(ray, lights) {
   if (t > 0) {
     const hitPoint = ray.at(t);
     const hitNormal = normalize(hitPoint.sub(sphereCenter));
-    const sphereColor = new Vector3(1, 0, 0);
-    const lighting = computeLighting(hitPoint, hitNormal, lights);
+    const sphereColor = new Vector3(0.8, 0.7, 0.5);
+    const view = ray.direction.multiplyScalar(-1);
+    const lighting = computeLighting(hitPoint, hitNormal, view, lights, 50);
     return sphereColor.multiplyScalar(lighting);
   }
   const unitDirection = normalize(ray.direction);

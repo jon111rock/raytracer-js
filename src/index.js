@@ -27,12 +27,24 @@ const lowerLeftCorner = origin
 
 // Light
 const ambientLight = new Light.ambient(0.3);
-const pointLight = new Light.point(0.6, new Vector3(1, 1, 0));
+const pointLight = new Light.point(0.5, new Vector3(1, 1, 0));
 const directionalLight = new Light.directional(0.2, new Vector3(1, 4, 4));
 const lights = [ambientLight, pointLight, directionalLight];
 
 // Sphere
-const s = new Sphere(new Vector3(0, 0, -1), 0.5, 65);
+const s = new Sphere(
+  new Vector3(0, 0, -1),
+  0.5,
+  new Vector3(0.8, 0.7, 0.5),
+  65
+);
+const s2 = new Sphere(
+  new Vector3(0, -100.5, -1),
+  100,
+  new Vector3(0.1, 0.9, 0.1),
+  65
+);
+const spheres = [s, s2];
 
 // Iterate through every pixel`
 for (let j = imageWidth - 1; j >= 0; j--) {
@@ -46,38 +58,15 @@ for (let j = imageWidth - 1; j >= 0; j--) {
         .add(vertical.multiplyScalar(v))
         .sub(origin)
     );
-    const pixelColor = rayColor(r, lights, s);
+    // const pixelColor = rayColor(r, lights, s);
+    const pixelColor = rayTrace(r, 0, Infinity, lights, spheres);
     drawColorToArray(pixels, i, j, pixelColor, imageWidth, imageHeight);
   }
 }
 drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
 
-// general function
-function rayColor(ray, lights, sphere) {
-  const t = hitSphere(sphere, ray);
-  if (t > 0) {
-    const hitPoint = ray.at(t);
-    const hitNormal = normalize(hitPoint.sub(sphere.center));
-    const sphereColor = new Vector3(0.8, 0.7, 0.5);
-    const view = ray.direction.multiplyScalar(-1);
-    const lighting = computeLighting(
-      hitPoint,
-      hitNormal,
-      view,
-      lights,
-      sphere.shine
-    );
-    return sphereColor.multiplyScalar(lighting);
-  }
-  const unitDirection = normalize(ray.direction);
-  const a = 0.5 * (unitDirection.y + 1.0); //
-  return new Vector3(1, 1, 1)
-    .multiplyScalar(1 - a)
-    .add(new Vector3(0.5, 0.7, 1).multiplyScalar(a));
-}
-
 // ray-sphere intersection test
-function hitSphere(sphere, ray) {
+function sphereRayIntersection(sphere, ray) {
   const oc = ray.origin.sub(sphere.center);
   const a = dot(ray.direction, ray.direction);
   const b = 2 * dot(oc, ray.direction);
@@ -86,6 +75,47 @@ function hitSphere(sphere, ray) {
   if (discriminant < 0) {
     return -1;
   } else {
-    return (-b - Math.sqrt(discriminant)) / (2 * a);
+    const r1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+    const r2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+    return [r1, r2];
   }
+}
+
+// general function
+function rayTrace(ray, tMin, tMax, lights, spheres) {
+  let tClosest = Infinity;
+  let closestSphere = null;
+  for (const sphere of spheres) {
+    const ts = sphereRayIntersection(sphere, ray);
+    if (ts[0] < tClosest && ts[0] <= tMax && ts[0] >= tMin) {
+      tClosest = ts[0];
+      closestSphere = sphere;
+    }
+    if (ts[1] < tClosest && ts[1] <= tMax && ts[1] >= tMin) {
+      tClosest = ts[1];
+      closestSphere = sphere;
+    }
+  }
+
+  if (closestSphere != null) {
+    const hitPoint = ray.at(tClosest);
+    const hitNormal = normalize(hitPoint.sub(closestSphere.center));
+    const sphereColor = closestSphere.color;
+    // const sphereColor = new Vector3(0.8, 0.7, 0.5);
+    const view = ray.direction.multiplyScalar(-1);
+    const lighting = computeLighting(
+      hitPoint,
+      hitNormal,
+      view,
+      lights,
+      closestSphere.shine
+    );
+    return sphereColor.multiplyScalar(lighting);
+  }
+  const unitDirection = normalize(ray.direction);
+  const a = 0.5 * (unitDirection.y + 1.0);
+  const backgroundColor = new Vector3(1, 1, 1)
+    .multiplyScalar(1 - a)
+    .add(new Vector3(0.5, 0.7, 1).multiplyScalar(a));
+  return backgroundColor;
 }

@@ -1,4 +1,4 @@
-import { Vector3, normalize, dot } from "./modules/vec3";
+import { Vector3, normalize, dot, reflect } from "./modules/vec3";
 import { drawPixelsToCanva, drawColorToArray } from "./modules/draw";
 import { Ray } from "./modules/ray";
 import { Light } from "./modules/light";
@@ -10,7 +10,7 @@ const canvas = document.getElementById("canvas");
 
 // Image
 const aspectRatio = 16 / 9;
-const imageWidth = 512;
+const imageWidth = 600;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
@@ -30,24 +30,27 @@ const lights = [ambientLight, pointLight, directionalLight];
 
 // Sphere
 const s = new Sphere(
-  new Vector3(0, 0, -1),
+  new Vector3(-0.3, 0.1, -1),
   0.5,
   new Vector3(0.8, 0.7, 0.5),
-  65
+  65,
+  0.1
 );
-const s1 = new Sphere(
+const sphereRight = new Sphere(
   new Vector3(1, 0, -0.75),
   0.25,
   new Vector3(0.5, 0.4, 0.5),
-  65
+  65,
+  0.7
 );
-const s2 = new Sphere(
+const plane = new Sphere(
   new Vector3(0, -100.5, -1),
   100,
   new Vector3(0.1, 0.9, 0.1),
-  65
+  65,
+  0.1
 );
-const spheres = [s, s1, s2];
+const spheres = [s, sphereRight, plane];
 
 //Scene
 const tMin = 0.001;
@@ -67,7 +70,7 @@ for (let j = imageWidth - 1; j >= 0; j--) {
         .sub(camera.origin)
     );
     // const pixelColor = rayColor(r, lights, s);
-    const pixelColor = rayTrace(r, scene);
+    const pixelColor = rayTrace(r, scene, 3);
     drawColorToArray(pixels, i, j, pixelColor, imageWidth, imageHeight);
   }
 }
@@ -158,27 +161,14 @@ function computeLighting(hitPoint, hitNormal, view, lights, sphere, scene) {
   return i;
 }
 
-function rayTrace(ray, scene) {
-  const { lights, spheres, tMin, tMax } = scene;
+function rayTrace(ray, scene, depth) {
+  const { lights } = scene;
   let { tClosest, closestSphere } = findClosestShpere(ray, scene);
-
-  for (const sphere of spheres) {
-    const ts = sphereRayIntersection(sphere, ray);
-    if (ts[0] < tClosest && ts[0] <= tMax && ts[0] >= tMin) {
-      tClosest = ts[0];
-      closestSphere = sphere;
-    }
-    if (ts[1] < tClosest && ts[1] <= tMax && ts[1] >= tMin) {
-      tClosest = ts[1];
-      closestSphere = sphere;
-    }
-  }
 
   if (closestSphere != null) {
     const hitPoint = ray.at(tClosest);
     const hitNormal = normalize(hitPoint.sub(closestSphere.center));
     const sphereColor = closestSphere.color;
-    // const sphereColor = new Vector3(0.8, 0.7, 0.5);
     const view = ray.direction.multiplyScalar(-1);
     const lighting = computeLighting(
       hitPoint,
@@ -188,7 +178,15 @@ function rayTrace(ray, scene) {
       closestSphere,
       scene
     );
-    return sphereColor.multiplyScalar(lighting);
+    const localColor = sphereColor.multiplyScalar(lighting);
+    const r = closestSphere.reflective;
+    if (depth <= 0 || r <= 0) {
+      return localColor;
+    }
+    const reflectVector = reflect(ray.direction, hitNormal);
+    const reflectRay = new Ray(hitPoint, reflectVector);
+    const reflectColor = rayTrace(reflectRay, scene, depth - 1);
+    return localColor.multiplyScalar(1 - r).add(reflectColor.multiplyScalar(r));
   }
   const unitDirection = normalize(ray.direction);
   const a = 0.5 * (unitDirection.y + 1.0);

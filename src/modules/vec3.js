@@ -48,3 +48,7 @@ export function cross(v1, v2) {
 export function normalize(v) {
   return v.divideScalar(v.length());
 }
+
+export function reflect(v, n) {
+  return v.sub(n.multiplyScalar(2 * dot(v, n)));
+}

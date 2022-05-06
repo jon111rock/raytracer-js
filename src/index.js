@@ -4,6 +4,7 @@ import { Ray } from "./modules/ray";
 import { Light } from "./modules/light";
 import { Sphere } from "./modules/sphere";
 import { Scene } from "./modules/scene";
+import { Camera } from "./modules/camera";
 
 const canvas = document.getElementById("canvas");
 
@@ -14,18 +15,13 @@ const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
 // Camera and Viewport
-const viewportHeight = 2.0;
-const viewportWidth = aspectRatio * viewportHeight;
-const focalLength = 1.0;
-
-const origin = new Vector3(0, 0, 0);
-const horizontal = new Vector3(viewportWidth, 0, 0);
-const vertical = new Vector3(0, viewportHeight, 0);
-const lowerLeftCorner = origin
-  .sub(horizontal.divideScalar(2))
-  .sub(vertical.divideScalar(2))
-  .sub(new Vector3(0, 0, focalLength));
-
+const camera = new Camera(
+  new Vector3(1, 0.5, 4),
+  new Vector3(0.5, 0, -1),
+  new Vector3(0, 1, 0),
+  20,
+  aspectRatio
+);
 // Light
 const ambientLight = new Light.ambient(0.3);
 const pointLight = new Light.point(0.5, new Vector3(1, 1, 0));
@@ -64,11 +60,11 @@ for (let j = imageWidth - 1; j >= 0; j--) {
     const u = i / (imageWidth - 1);
     const v = j / (imageHeight - 1);
     const r = new Ray(
-      origin,
-      lowerLeftCorner
-        .add(horizontal.multiplyScalar(u))
-        .add(vertical.multiplyScalar(v))
-        .sub(origin)
+      camera.origin,
+      camera.lowerLeftCorner
+        .add(camera.horizontal.multiplyScalar(u))
+        .add(camera.vertical.multiplyScalar(v))
+        .sub(camera.origin)
     );
     // const pixelColor = rayColor(r, lights, s);
     const pixelColor = rayTrace(r, scene);

@@ -1,6 +1,7 @@
 import { Vector3, normalize, dot } from "./modules/vec3";
 import { drawPixelsToCanva, drawColorToArray } from "./modules/draw";
 import { Ray } from "./modules/ray";
+import { Light } from "./modules/light";
 
 const canvas = document.getElementById("canvas");
 
@@ -10,7 +11,7 @@ const imageWidth = 800;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
-// Camera
+// Camera and Viewport
 const viewportHeight = 2.0;
 const viewportWidth = aspectRatio * viewportHeight;
 const focalLength = 1.0;

@@ -33,3 +33,20 @@ export class Light {
     this.position = position;
   }
 }
+
+/**
+ *
+ * @param {vector3} hitPoint
+ * @param {vector3} hitNormal recommand normalize
+ * @param {Light}
+ */
+export function computeLighting(hitPoint, hitNormal, light) {
+  let i = 0;
+  // single light
+  // todo: multiLight
+  if (light.type == "ambient") {
+    i += light.intensity;
+  }
+
+  return i;
+}

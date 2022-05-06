@@ -1,13 +1,13 @@
 import { Vector3, normalize, dot } from "./modules/vec3";
 import { drawPixelsToCanva, drawColorToArray } from "./modules/draw";
 import { Ray } from "./modules/ray";
-import { Light } from "./modules/light";
+import { Light, computeLighting } from "./modules/light";
 
 const canvas = document.getElementById("canvas");
 
 // Image
 const aspectRatio = 16 / 9;
-const imageWidth = 800;
+const imageWidth = 400;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
@@ -24,7 +24,10 @@ const lowerLeftCorner = origin
   .sub(vertical.divideScalar(2))
   .sub(new Vector3(0, 0, focalLength));
 
-// Iterate through every pixel
+// Light
+const ambientLight = new Light.ambient(0.2);
+
+// Iterate through every pixel`
 for (let j = imageWidth - 1; j >= 0; j--) {
   for (let i = 0; i < imageWidth; i++) {
     const u = i / (imageWidth - 1);
@@ -43,21 +46,37 @@ for (let j = imageWidth - 1; j >= 0; j--) {
 drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
 
 // general function
-function rayColor(r) {
-  if (hitSphere(new Vector3(0, 0, -1), 0.5, r)) return new Vector3(1, 0, 0);
-  const unitDirection = normalize(r.direction);
-  const t = 0.5 * (unitDirection.y + 1.0);
+function rayColor(ray) {
+  // Sphere
+  const sphereCenter = new Vector3(0, 0, -1);
+  const sphereRadius = 0.5;
+
+  const t = hitSphere(sphereCenter, sphereRadius, ray);
+  if (t > 0) {
+    const hitNormal = normalize(ray.at(t).sub(sphereCenter));
+    return new Vector3(
+      hitNormal.x + 1,
+      hitNormal.y + 1,
+      hitNormal.z + 1
+    ).multiplyScalar(0.5);
+  }
+  const unitDirection = normalize(ray.direction);
+  const a = 0.5 * (unitDirection.y + 1.0); //
   return new Vector3(1, 1, 1)
-    .multiplyScalar(1 - t)
-    .add(new Vector3(0.5, 0.7, 1).multiplyScalar(t));
+    .multiplyScalar(1 - a)
+    .add(new Vector3(0.5, 0.7, 1).multiplyScalar(a));
 }
 
 // ray-sphere intersection test
-function hitSphere(center, radius, r) {
-  const oc = r.origin.sub(center);
-  const a = dot(r.direction, r.direction);
-  const b = 2 * dot(oc, r.direction);
+function hitSphere(center, radius, ray) {
+  const oc = ray.origin.sub(center);
+  const a = dot(ray.direction, ray.direction);
+  const b = 2 * dot(oc, ray.direction);
   const c = dot(oc, oc) - radius * radius;
   const discriminant = b * b - 4 * a * c;
-  return discriminant > 0;
+  if (discriminant < 0) {
+    return -1;
+  } else {
+    return (-b - Math.sqrt(discriminant)) / (2 * a);
+  }
 }

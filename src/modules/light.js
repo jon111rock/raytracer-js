@@ -45,7 +45,6 @@ export class Light {
 export function computeLighting(hitPoint, hitNormal, lights) {
   let i = 0;
   for (const light of lights) {
-    console.log(light);
     if (light.type == "ambient") {
       i += light.intensity;
     } else {

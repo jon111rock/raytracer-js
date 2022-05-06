@@ -24,6 +24,12 @@ const lowerLeftCorner = origin
   .sub(vertical.divideScalar(2))
   .sub(new Vector3(0, 0, focalLength));
 
+// Light
+const ambientLight = new Light.ambient(0.6);
+const pointLight = new Light.point(0.6, new Vector3(2, 1, 0));
+const directionalLight = new Light.directional(0.2, new Vector3(1, 4, 4));
+const lights = [ambientLight, pointLight, directionalLight];
+
 // Iterate through every pixel`
 for (let j = imageWidth - 1; j >= 0; j--) {
   for (let i = 0; i < imageWidth; i++) {
@@ -36,20 +42,14 @@ for (let j = imageWidth - 1; j >= 0; j--) {
         .add(vertical.multiplyScalar(v))
         .sub(origin)
     );
-    const pixelColor = rayColor(r);
+    const pixelColor = rayColor(r, lights);
     drawColorToArray(pixels, i, j, pixelColor, imageWidth, imageHeight);
   }
 }
 drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
 
 // general function
-function rayColor(ray) {
-  // Light
-  const ambientLight = new Light.ambient(0.6);
-  const pointLight = new Light.point(0.6, new Vector3(2, 1, 0));
-  const directionalLight = new Light.directional(0.2, new Vector3(1, 4, 4));
-  const lights = [ambientLight, pointLight, directionalLight];
-
+function rayColor(ray, lights) {
   // Sphere
   const sphereCenter = new Vector3(0, 0, -1);
   const sphereRadius = 0.5;

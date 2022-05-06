@@ -10,7 +10,7 @@ const canvas = document.getElementById("canvas");
 
 // Image
 const aspectRatio = 16 / 9;
-const imageWidth = 600;
+const imageWidth = 1024;
 const imageHeight = parseInt(imageWidth / aspectRatio);
 const pixels = new Uint8ClampedArray(4 * imageWidth * imageHeight);
 
@@ -66,6 +66,7 @@ const tMax = Infinity;
 const scene = new Scene(spheres, lights, tMin, tMax);
 
 // Iterate through every pixel
+let startTime = performance.now();
 for (let j = imageWidth - 1; j >= 0; j--) {
   for (let i = 0; i < imageWidth; i++) {
     const u = i / (imageWidth - 1);
@@ -83,6 +84,11 @@ for (let j = imageWidth - 1; j >= 0; j--) {
   }
 }
 drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
+let endTime = performance.now();
+let sec = (endTime - startTime) / 1000;
+console.log(`execute time: ${sec}s`);
+let a = document.getElementById("exetime");
+a.innerHTML += ` ${sec.toFixed(2)}s`;
 
 // ray-sphere intersection test
 function sphereRayIntersection(sphere, ray) {

@@ -1,3 +1,5 @@
+import { Vector3, dot } from "./vec3";
+
 export class Light {
   /**
    *
@@ -24,13 +26,13 @@ export class Light {
   /**
    *
    * @param {float} intensity float
-   * @param {vector3} position vector3
+   * @param {vector3} direction vector3
    * @constant  type "directional" (string)
    */
-  static directional(intensity, position) {
+  static directional(intensity, direction) {
     this.type = "directional";
     this.intensity = intensity;
-    this.position = position;
+    this.direction = direction;
   }
 }
 
@@ -38,14 +40,29 @@ export class Light {
  *
  * @param {vector3} hitPoint
  * @param {vector3} hitNormal recommand normalize
- * @param {Light}
+ * @param {Array} lights array of ligh object
  */
-export function computeLighting(hitPoint, hitNormal, light) {
+export function computeLighting(hitPoint, hitNormal, lights) {
   let i = 0;
-  // single light
-  // todo: multiLight
-  if (light.type == "ambient") {
-    i += light.intensity;
+  for (const light of lights) {
+    console.log(light);
+    if (light.type == "ambient") {
+      i += light.intensity;
+    } else {
+      let lightVector;
+      if (light.type == "point") {
+        lightVector = light.position.sub(hitPoint);
+      } else if (light.type == "directional") {
+        lightVector = light.direction;
+      }
+
+      const normalDotLight = dot(hitNormal, lightVector);
+      if (normalDotLight > 0) {
+        i +=
+          (light.intensity * normalDotLight) /
+          (hitNormal.length() * lightVector.length());
+      }
+    }
   }
 
   return i;

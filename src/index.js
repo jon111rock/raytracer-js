@@ -24,9 +24,6 @@ const lowerLeftCorner = origin
   .sub(vertical.divideScalar(2))
   .sub(new Vector3(0, 0, focalLength));
 
-// Light
-const ambientLight = new Light.ambient(0.2);
-
 // Iterate through every pixel`
 for (let j = imageWidth - 1; j >= 0; j--) {
   for (let i = 0; i < imageWidth; i++) {
@@ -47,18 +44,23 @@ drawPixelsToCanva(canvas, pixels, imageWidth, imageHeight);
 
 // general function
 function rayColor(ray) {
+  // Light
+  const ambientLight = new Light.ambient(0.6);
+  const pointLight = new Light.point(0.6, new Vector3(2, 1, 0));
+  const directionalLight = new Light.directional(0.2, new Vector3(1, 4, 4));
+  const lights = [ambientLight, pointLight, directionalLight];
+
   // Sphere
   const sphereCenter = new Vector3(0, 0, -1);
   const sphereRadius = 0.5;
 
   const t = hitSphere(sphereCenter, sphereRadius, ray);
   if (t > 0) {
-    const hitNormal = normalize(ray.at(t).sub(sphereCenter));
-    return new Vector3(
-      hitNormal.x + 1,
-      hitNormal.y + 1,
-      hitNormal.z + 1
-    ).multiplyScalar(0.5);
+    const hitPoint = ray.at(t);
+    const hitNormal = normalize(hitPoint.sub(sphereCenter));
+    const sphereColor = new Vector3(1, 0, 0);
+    const lighting = computeLighting(hitPoint, hitNormal, lights);
+    return sphereColor.multiplyScalar(lighting);
   }
   const unitDirection = normalize(ray.direction);
   const a = 0.5 * (unitDirection.y + 1.0); //

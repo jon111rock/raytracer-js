@@ -1,6 +1,11 @@
 import { Vector3 } from "./vec3";
 
 export class Ray {
+  /**
+   *
+   * @param {vector3} origin
+   * @param {vector3} direction
+   */
   constructor(origin, direction) {
     this.origin = origin;
     this.direction = direction;

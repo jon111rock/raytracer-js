@@ -1,8 +1,9 @@
 import { Vector3, normalize, dot } from "./modules/vec3";
 import { drawPixelsToCanva, drawColorToArray } from "./modules/draw";
 import { Ray } from "./modules/ray";
-import { Light, computeLighting } from "./modules/light";
+import { Light } from "./modules/light";
 import { Sphere } from "./modules/sphere";
+import { Scene } from "./modules/scene";
 
 const canvas = document.getElementById("canvas");
 
@@ -38,15 +39,26 @@ const s = new Sphere(
   new Vector3(0.8, 0.7, 0.5),
   65
 );
+const s1 = new Sphere(
+  new Vector3(1, 0, -0.75),
+  0.25,
+  new Vector3(0.5, 0.4, 0.5),
+  65
+);
 const s2 = new Sphere(
   new Vector3(0, -100.5, -1),
   100,
   new Vector3(0.1, 0.9, 0.1),
   65
 );
-const spheres = [s, s2];
+const spheres = [s, s1, s2];
 
-// Iterate through every pixel`
+//Scene
+const tMin = 0.001;
+const tMax = Infinity;
+const scene = new Scene(spheres, lights, tMin, tMax);
+
+// Iterate through every pixel
 for (let j = imageWidth - 1; j >= 0; j--) {
   for (let i = 0; i < imageWidth; i++) {
     const u = i / (imageWidth - 1);
@@ -59,7 +71,7 @@ for (let j = imageWidth - 1; j >= 0; j--) {
         .sub(origin)
     );
     // const pixelColor = rayColor(r, lights, s);
-    const pixelColor = rayTrace(r, 0, Infinity, lights, spheres);
+    const pixelColor = rayTrace(r, scene);
     drawColorToArray(pixels, i, j, pixelColor, imageWidth, imageHeight);
   }
 }
@@ -81,10 +93,79 @@ function sphereRayIntersection(sphere, ray) {
   }
 }
 
-// general function
-function rayTrace(ray, tMin, tMax, lights, spheres) {
+function findClosestShpere(ray, scene) {
+  const { tMin, tMax, spheres } = scene;
   let tClosest = Infinity;
   let closestSphere = null;
+  for (const sphere of spheres) {
+    const ts = sphereRayIntersection(sphere, ray);
+    if (ts[0] < tClosest && ts[0] <= tMax && ts[0] >= tMin) {
+      tClosest = ts[0];
+      closestSphere = sphere;
+    }
+    if (ts[1] < tClosest && ts[1] <= tMax && ts[1] >= tMin) {
+      tClosest = ts[1];
+      closestSphere = sphere;
+    }
+  }
+
+  return { tClosest, closestSphere };
+}
+// too many para !
+function computeLighting(hitPoint, hitNormal, view, lights, sphere, scene) {
+  let i = 0;
+  for (const light of lights) {
+    if (light.type == "ambient") {
+      i += light.intensity;
+    } else {
+      let lightVector;
+      if (light.type == "point") {
+        lightVector = light.position.sub(hitPoint);
+      } else if (light.type == "directional") {
+        lightVector = light.direction;
+      }
+
+      //Shadow
+      const shadowRay = new Ray(hitPoint, normalize(lightVector.sub(hitPoint)));
+      const { closestSphere } = findClosestShpere(shadowRay, scene);
+      if (closestSphere != null) {
+        continue;
+      }
+
+      // Diffuse
+      const normalDotLight = dot(hitNormal, lightVector);
+      if (normalDotLight > 0) {
+        i +=
+          (light.intensity * normalDotLight) /
+          (hitNormal.length() * lightVector.length());
+      }
+
+      //Specular
+      if (sphere.shine != undefined) {
+        const reflectVector = hitNormal
+          .multiplyScalar(2)
+          .multiplyScalar(dot(hitNormal, lightVector))
+          .sub(lightVector);
+        const reflectDotView = dot(reflectVector, view);
+        if (reflectDotView > 0) {
+          i +=
+            light.intensity *
+            Math.pow(
+              reflectDotView / (reflectVector.length() * view.length()),
+              sphere.shine
+            );
+        }
+      }
+    }
+  }
+
+  return i;
+}
+
+function rayTrace(ray, scene) {
+  const { lights, spheres, tMin, tMax } = scene;
+  let { tClosest, closestSphere } = findClosestShpere(ray, scene);
+
   for (const sphere of spheres) {
     const ts = sphereRayIntersection(sphere, ray);
     if (ts[0] < tClosest && ts[0] <= tMax && ts[0] >= tMin) {
@@ -108,7 +189,8 @@ function rayTrace(ray, tMin, tMax, lights, spheres) {
       hitNormal,
       view,
       lights,
-      closestSphere.shine
+      closestSphere,
+      scene
     );
     return sphereColor.multiplyScalar(lighting);
   }

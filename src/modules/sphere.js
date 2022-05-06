@@ -13,7 +13,3 @@ export class Sphere {
     this.shine = shine;
   }
 }
-
-// todo: 一道光線打到多個球形成多個交點，要找到離相機最近的交點才能著色
-// sphereList  (一堆球的集合)
-// closestSphere (ray打到最近的球)

@@ -29,28 +29,36 @@ const directionalLight = new Light.directional(0.2, new Vector3(1, 4, 4));
 const lights = [ambientLight, pointLight, directionalLight];
 
 // Sphere
-const s = new Sphere(
+const sphereLeft = new Sphere(
   new Vector3(-0.3, 0.1, -1),
   0.5,
   new Vector3(0.8, 0.7, 0.5),
   65,
-  0.1
+  0
+);
+
+const sphereMiddle = new Sphere(
+  new Vector3(0.7, 0.1, -1),
+  0.4,
+  new Vector3(0.5, 0.3, 0.2),
+  0.3,
+  0.4
 );
 const sphereRight = new Sphere(
-  new Vector3(1, 0, -0.75),
+  new Vector3(1.5, 0, -0.75),
   0.25,
   new Vector3(0.5, 0.4, 0.5),
   65,
-  0.7
+  0.1
 );
 const plane = new Sphere(
   new Vector3(0, -100.5, -1),
   100,
   new Vector3(0.1, 0.9, 0.1),
   65,
-  0.1
+  0
 );
-const spheres = [s, sphereRight, plane];
+const spheres = [sphereLeft, sphereMiddle, sphereRight, plane];
 
 //Scene
 const tMin = 0.001;
